@@ -1,0 +1,86 @@
+# Input file for device simulation tool ATLAS
+go atlas
+#Defining meshes for the device: Meshes shoe computer resource constraints.
+mesh space.mult=1.0
+x.mesh loc=0.000 spac=0.01
+x.mesh loc=0.095 spac=0.001
+x.mesh loc=0.100 spac=0.00005
+x.mesh loc=0.105 spac=0.0005
+x.mesh loc=0.115 spac=0.005
+x.mesh loc=0.115 spac=0.0005
+x.mesh loc=0.130 spac=0.00005
+x.mesh loc=0.135 spac=0.001
+x.mesh loc=0.180 spac=0.005
+x.mesh loc=0.23 spac=0.01
+
+y.mesh loc=-0.003 spac=0.0005
+y.mesh loc=0.000 spac=0.0001
+y.mesh loc=0.002 spac=0.0005
+y.mesh loc=0.008 spac=0.0005
+y.mesh loc=0.010 spac=0.0001
+y.mesh loc=0.013 spac=0.0005
+
+#Defining regions of the device
+region num=1 y.max=0.000 material=Oxide
+region num=2 y.min=0.000 y.max=0.010 material=Silicon
+region num=3 y.min=0.010 material=Oxide
+
+#Defining electrodes: channel length in this example is 30 nm
+electrode name=gate x.min=0.1 x.max=0.13 top
+electrode name=drain x.max=0.050 y.min=0.000 y.max=0.0
+electrode name=source x.min=0.180 y.min=0.0 y.max=0.0
+electrode name=gate2 x.min=0.1 x.max=0.13 bottom
+
+
+#defining another mesh for non-local BTBT modelling in ATLAS
+qtx.mesh loc=0.05 spac=0.0005
+qtx.mesh loc=0.13 spac=0.0002
+qtx.mesh loc=0.20 spac=0.0005
+qty.mesh loc=0.000 spac=0.0005
+qty.mesh loc=0.005 spac=0.001
+qty.mesh loc=0.010 spac=0.0005
+
+#Defining the tunneling parameter for silicon: The value of me.tunnel in this example has been calibrated using [1, 2]
+material material=Silicon me.tunnel=0.14 region=2
+
+#Defining doping: The doping profile is assumed to be abrupt
+doping uniform n.type conc=1e17 reg=2
+doping uniform n.type conc=5e18 x.max=0.100 reg=2
+doping uniform n.type conc=1e17 reg=2
+doping uniform n.type conc=5e18 x.max=0.100 reg=2
+doping uniform p.type conc=1e20 x.min=0.130 reg=2
+
+#Defining contacts
+contact name=gate workfunction=4.5
+contact name=gate2 workfunction=4.5 common=gate
+contact name=drain
+contact name=source
+#Defining physical models: Band gap narrowing effect is included. The effect of concentration dependent mobility and SRH models are also include, though their impact in this example is found to be not appreciable
+models bbt.nonlocal bbt.forward qtunn.dir=1 bgn consrh conmob print
+
+#included to improve the convergence
+method newton
+solve init
+#Applying bias for simulation
+solve vsource=0.0
+solve vgate=0.0
+
+#in order to improve convergence, drain voltage is increased gradually
+solve vdrain=0.03125
+solve vdrain=0.0625
+solve vdrain=0.125
+solve vdrain=0.25
+solve vdrain=0.5
+solve vdrain=1.00
+
+#Simulating the transfer characteristics
+log outf=xfer.log master
+solve vgate=0.0 vstep=0.1 name=gate vfinal=1.5
+
+#plotting the transfer characteristics using the plotter of ATLAS
+tonyplot xfer.log master
+#Storing relevant information of the device for further analysis
+output val.band con.band charge e.lines
+save outf=test.str
+tonyplot test.str
+quit

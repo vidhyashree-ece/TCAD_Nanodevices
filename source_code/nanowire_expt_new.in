@@ -1,0 +1,71 @@
+
+Go Atlas
+mesh three.d cylindrical
+#R mesh specification r=2nm
+r.mesh location=0.0 spacing=0.009
+r.mesh location=0.0017 spacing=0.0009
+r.mesh location=0.0020 spacing=0.0009
+r.mesh location=0.0026 spacing=0.009
+r.mesh location=0.0029 spacing=0.0009
+r.mesh location=0.0030 spacing=0.0005
+r.mesh location=0.0032 spacing=0.009
+
+#A mesh specification
+a.mesh location=0 spacing=20
+a.mesh location=360 spacing=20
+
+#Z mesh specification
+z.mesh location=-0.020 spacing=0.0008
+z.mesh location=-0.019 spacing=0.0006
+z.mesh location=-0.014 spacing=0.0008
+z.mesh location=-0.010 spacing=0.0003
+z.mesh location=-0.006 spacing=0.0006
+#z.mesh location=-0.009 spacing=0.009
+z.mesh location=0.006 spacing=0.0009
+z.mesh location=0.010 spacing=0.00006
+z.mesh location=0.014 spacing=0.0008
+z.mesh location=0.019 spacing=0.0006
+z.mesh location=0.020 spacing=0.001
+
+#region declaration
+region number=1 material=silicon z.min=-0.020 z.max=-0.010 a.min=0 a.max=360 r.min=0.0 r.max=0.002
+region number=2 material=silicon z.min=-0.010 z.max=0.010 a.min=0 a.max=360 r.min=0.0 r.max=0.002
+region number=3 material=hfo2 z.min=-0.010 z.max=0.010 a.min=0 a.max=360 r.min=0.002 r.max=0.003
+region number=4 material=polysilicon z.min=-0.010 z.max=0.010 a.min=0 a.max=360 r.min=0.003 r.max=0.0032
+region number=5 material=silicon z.min=0.010 z.max=0.020 a.min=0 a.max=360 r.min=0.0 r.max=0.002
+
+#electrode specification
+electrode name=drain z.min=-0.020 z.max=-0.019 r.min=0.0 r.max=0.002
+electrode name=gate z.min=-0.010 z.max=-0.010 r.min=0.0 r.max=0.003
+electrode name=source z.min=0.019 z.max=0.020 r.min=0.0 r.max=0.002
+
+#doping speciication
+doping uniform conc=1e20 n.type z.min=-0.020 z.max=-0.010 r.min=0.0 r.max=0.002
+doping uniform conc=1e16 p.type z.min=-0.010 z.max=0.010 r.min=0.0 r.max=0.002
+doping uniform conc=1e20 n.type z.min=0.010 z.max=0.020 r.min=0.0 r.max=0.002
+
+#contact
+contact name=gate workfun=4.9
+contact name=source
+contact name=drain
+
+
+#do IDVG characterstic
+models srh bqp.qdir=4 bqp.n bqp.ngamma=1.2 bqp.nalpha=.5
+method newton block itlim=20 nblockit=30 trap maxtrap=6 vsatmod.inc =.01 carriers=2
+solve init
+solve prev
+solve vdrain=0
+solve vdrain=0.05
+solve vdrain=0.1
+solve vdrain=0.2
+solve vdrain=0.8
+log outf=cy1.log master
+solve vgate=0 vstep=0.05 vfinal=1.0 name=gate
+
+save outf=cy1.str
+tonyplot3D cy1.str
+
+tonyplot3D cy1.log
+quit
+
