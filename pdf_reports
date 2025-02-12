@@ -1,1 +1,4 @@
-
+The output of the TCAD_Nanodevices are in .log and .str file format.
+.log file -function of the device in exponential form.
+.str file - preview the structure of the device with the dimension.
+.in file - coding to implement the structure of the device 
